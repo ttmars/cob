@@ -7,7 +7,8 @@ import (
 )
 
 func Test(t *testing.T) {
-	//fmt.Println(DNepal.GetRandomNum(1,3))
+	//DNepal.CreateFileServerByGin("C:\\lee\\project\\go\\auto", "/static/", "8888", true)
+	DNepal.CreateFileServer("C:\\lee\\project\\go\\auto", "/static/", "8888", true)
 }
 
 func TestNepal_GetRandomString(t *testing.T) {

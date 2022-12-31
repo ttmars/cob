@@ -2,8 +2,10 @@ package cob
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"log"
 	"math/rand"
+	"net/http"
 	"time"
 )
 
@@ -28,4 +30,29 @@ func (obj *Nepal)GetRandomNum(N,M int) int  {
 	rand.Seed(time.Now().UnixNano())
 	n := rand.Intn(M-N+1)
 	return n+N
+}
+
+// CreateFileServerByGin 创建一个HTTP文件服务器，通过gin框架
+func (obj *Nepal)CreateFileServerByGin(localPath string, relativePath string, port string, OnlyListenLocalAddr bool)  {
+	router := gin.Default()
+	router.StaticFS(relativePath, http.Dir(localPath))
+	if OnlyListenLocalAddr {
+		router.Run("127.0.0.1:"+port)
+	}else{
+		router.Run(":"+port)
+	}
+}
+
+// CreateFileServer 创建一个HTTP文件服务器，注意relativePath路径后要加斜杠
+// example:DNepal.CreateFileServer("C:\\lee\\project\\go\\auto", "/static/", "8888", true)
+func (obj *Nepal)CreateFileServer(localPath string, relativePath string, port string, OnlyListenLocalAddr bool)  {
+	fs := http.FileServer(http.Dir(localPath))
+	http.Handle(relativePath, http.StripPrefix(relativePath, fs))
+	if OnlyListenLocalAddr {
+		log.Printf("Listening and serving HTTP on 127.0.0.1:%s\n", port)
+		http.ListenAndServe("127.0.0.1:"+port, nil)
+	}else{
+		log.Printf("Listening and serving HTTP on 0.0.0.0:%s\n", port)
+		http.ListenAndServe(":"+port, nil)
+	}
 }
