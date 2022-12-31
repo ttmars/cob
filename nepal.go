@@ -6,6 +6,8 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"path"
+	"runtime"
 	"time"
 )
 
@@ -55,4 +57,10 @@ func (obj *Nepal)CreateFileServer(localPath string, relativePath string, port st
 		log.Printf("Listening and serving HTTP on 0.0.0.0:%s\n", port)
 		http.ListenAndServe(":"+port, nil)
 	}
+}
+
+// GetRootPath 获取项目根路径
+func (obj *Nepal)GetRootPath() (root string) {
+	_,filename,_,_ := runtime.Caller(0)
+	return path.Dir(filename)
 }
