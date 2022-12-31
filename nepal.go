@@ -18,7 +18,7 @@ import (
 type Nepal struct {
 
 }
-var DNepal = Nepal{}
+var DNepal = &Nepal{}
 
 // GetRandomString 获取n位随机字符串，n为偶数
 func (obj *Nepal)GetRandomString(n int) (result string) {
@@ -148,3 +148,4 @@ func (obj *Nepal)InitLog(logPrefix string, logFilePath string)  {
 		log.SetOutput(logFile)
 	}
 }
+
