@@ -1,4 +1,4 @@
-package cob
+package audio
 
 import (
 	"io/fs"
