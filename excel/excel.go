@@ -104,7 +104,12 @@ func (obj *Excel)StructToSlice(slice interface{}, addFieldName bool) [][]interfa
 		// 遍历元素中的所有字段
 		for j := 0; j < elemType.NumField(); j++ {
 			// 获取字段值，并将其转换为 interface{} 类型
-			fieldVal := val.Index(i).Field(j).Interface()
+			var fieldVal interface{}
+			if val.Index(i).Field(j).Kind() == reflect.Ptr {			// 判断字段是否为指针类型
+				fieldVal = val.Index(i).Field(j).Elem().Interface()
+			}else{
+				fieldVal = val.Index(i).Field(j).Interface()
+			}
 			innerSlice[j] = fieldVal
 		}
 		result[i] = innerSlice
