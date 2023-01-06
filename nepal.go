@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"reflect"
 	"runtime"
 	"time"
 )
@@ -75,4 +76,45 @@ func (obj *Nepal)ReadFileToSlice(filepath string) (lines []string) {
 		}
 	}
 	return
+}
+
+// 将任意结构体切片转换为二维切片[][]interface{}
+func (obj *Nepal)StructToSlice(slice interface{}, addFieldName bool) [][]interface{} {
+	// 将传入的切片转换为 reflect.Value 类型
+	val := reflect.ValueOf(slice)
+	if val.Kind() != reflect.Slice {
+		log.Fatalln("传入的不是切片")
+	}
+
+	// 创建结果切片
+	result := make([][]interface{}, val.Len())
+
+	// 遍历切片中的所有元素
+	for i := 0; i < val.Len(); i++ {
+		// 获取每个元素的类型
+		elemType := val.Index(i).Type()
+		// 创建一个新的切片，用来存储每个元素中的所有字段
+		innerSlice := make([]interface{}, elemType.NumField())
+		// 遍历元素中的所有字段
+		for j := 0; j < elemType.NumField(); j++ {
+			// 获取字段值，并将其转换为 interface{} 类型
+			fieldVal := val.Index(i).Field(j).Interface()
+			innerSlice[j] = fieldVal
+		}
+		result[i] = innerSlice
+	}
+
+	if addFieldName {
+		elemType := val.Index(0).Type()
+		fieldNameSlice := make([]interface{}, elemType.NumField())
+		for j := 0; j < elemType.NumField(); j++ {
+			fieldName := elemType.Field(j).Name
+			fieldNameSlice[j] = fieldName
+		}
+		var tmp [][]interface{}
+		tmp = append(tmp, fieldNameSlice)
+		result = append(tmp, result...)
+	}
+
+	return result
 }
