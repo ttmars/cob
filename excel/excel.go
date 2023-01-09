@@ -105,7 +105,7 @@ func (obj *Excel)StructToSlice(slice interface{}, addFieldName bool) [][]interfa
 		for j := 0; j < elemType.NumField(); j++ {
 			// 获取字段值，并将其转换为 interface{} 类型
 			var fieldVal interface{}
-			if val.Index(i).Field(j).Kind() == reflect.Ptr {			// 判断字段是否为指针类型
+			if val.Index(i).Field(j).Kind() == reflect.Ptr && !val.Index(i).Field(j).IsNil() {			// 判断字段是否为指针类型,且不为空指针（对nil指针取值panic）
 				fieldVal = val.Index(i).Field(j).Elem().Interface()
 			}else{
 				fieldVal = val.Index(i).Field(j).Interface()
