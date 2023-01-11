@@ -12,7 +12,7 @@ import (
 type SSHClient struct {
 	User string
 	Pass string
-	Key string
+	Key string			// 私钥文件路径，公钥需写入服务器的authorized_keys
 	Host string
 	Port int
 	Timeout int

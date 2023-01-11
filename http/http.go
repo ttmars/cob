@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 )
 
@@ -15,18 +16,61 @@ type Http struct {
 
 var DHttp = &Http{}
 
-// CreateHttpProxyClient 创建一个http代理客户端，代理类型由uri确定，支持http/https/socks5，默认为http
-func (obj *Http)CreateHttpProxyClient(uri string, user string, pass string, timeout int) *http.Client {
-	proxy := func(_ *http.Request) (*url.URL, error) {
-		u,err := url.Parse(uri)
-		if user != "" && pass != "" {
-			u.User = url.UserPassword(user, pass)
-		}
-		return u,err
+// TestMulHttpProxy 批量测试多个HTTP代理
+func (obj *Http)TestMulHttpProxy(proxys []string, timeout int, maxG int, printLog bool) (success []string, fail []string){
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	ch := make(chan bool, maxG)
+	for _,proxy := range proxys {
+		wg.Add(1)
+		ch <- true
+		go func(proxy string) {
+			_,err := obj.TestOneHttpProxy(proxy, timeout)
+			if err != nil {
+				if printLog {
+					log.Println(proxy, "fail", err)
+				}
+				mu.Lock()
+				fail = append(fail, proxy)
+				mu.Unlock()
+			}else{
+				if printLog {
+					log.Println(proxy, "success")
+				}
+				mu.Lock()
+				success = append(success, proxy)
+				mu.Unlock()
+			}
+			wg.Done()
+			<-ch
+		}(proxy)
 	}
+	wg.Wait()
+	return
+}
 
+// TestOneHttpProxy 测试单个http代理是否可用
+func (obj *Http)TestOneHttpProxy(proxy string, timeout int) (string, error) {
+	client := obj.CreateHttpProxyClient(proxy, timeout)
+	resp,err := client.Get("https://ip.sb/")
+	if err != nil {
+		return "",err
+	}
+	defer resp.Body.Close()
+	b,err := io.ReadAll(resp.Body)
+	if err != nil{
+		return "",err
+	}
+	return string(b), nil
+}
+
+// CreateHttpProxyClient 创建一个http代理客户端，代理类型由uri确定，支持http/https/socks5，默认为http
+// http://fans007:fans888@45.76.169.156:39000
+func (obj *Http)CreateHttpProxyClient(proxy string, timeout int) *http.Client {
 	return &http.Client{
-		Transport:&http.Transport{Proxy: proxy},
+		Transport:&http.Transport{Proxy: func(_ *http.Request) (*url.URL, error){
+			return url.Parse(proxy)
+		}},
 		Timeout: time.Duration(timeout) * time.Second,
 	}
 }
