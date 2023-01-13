@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"fmt"
+	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"net"
 	"os"
@@ -16,6 +17,45 @@ type SSHClient struct {
 	Host string
 	Port int
 	Timeout int
+	Session *ssh.Session
+	Client *ssh.Client
+}
+
+// UploadFile 上传文件
+func (obj *SSHClient)UploadFile(localFile string, remoteFile string) error {
+	// 初始化client、session
+	_,err := obj.CreateSession()
+	if err != nil {
+		return err
+	}
+
+	// 创建一个ftp客户端
+	ftpClient, err := sftp.NewClient(obj.Client)
+	if err != nil {
+		return err
+	}
+	defer ftpClient.Close()
+
+	// 远程文件
+	dstFile, err := ftpClient.Create(remoteFile)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+
+	// 本地文件
+	b,err := os.ReadFile(localFile)
+	if err != nil {
+		return err
+	}
+
+	// 传输
+	_,err = dstFile.Write(b)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // RunScriptFile 执行脚本文件
@@ -108,6 +148,7 @@ func (obj *SSHClient)CreateSession() (*ssh.Session, error) {
 	if client, err = ssh.Dial("tcp", addr, clientConfig); err != nil {
 		return nil, err
 	}
+	obj.Client = client
 
 	// create session
 	if session, err = client.NewSession(); err != nil {
@@ -123,6 +164,7 @@ func (obj *SSHClient)CreateSession() (*ssh.Session, error) {
 	if err := session.RequestPty("xterm", 80, 40, modes); err != nil {
 		return nil, err
 	}
+	obj.Session = session
 
 	return session, nil
 }
