@@ -25,6 +25,7 @@ func (obj *Http)TestMulHttpProxy(proxys []string, timeout int, maxG int, printLo
 		wg.Add(1)
 		ch <- true
 		go func(proxy string) {
+			t := time.Now()
 			_,err := obj.TestOneHttpProxy(proxy, timeout)
 			if err != nil {
 				if printLog {
@@ -35,7 +36,7 @@ func (obj *Http)TestMulHttpProxy(proxys []string, timeout int, maxG int, printLo
 				mu.Unlock()
 			}else{
 				if printLog {
-					log.Println(proxy, "success")
+					log.Println(proxy, "success", time.Since(t))
 				}
 				mu.Lock()
 				success = append(success, proxy)
