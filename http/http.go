@@ -100,19 +100,3 @@ func (obj *Http)CreateFileServer(localPath string, relativePath string, port str
 		http.ListenAndServe(":"+port, nil)
 	}
 }
-
-// Get 请求一个URL，返回响应体
-func (obj *Http)Get(url string) (result string) {
-	http.DefaultClient.Timeout = time.Second * 3
-	resp,err := http.Get(url)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer resp.Body.Close()
-
-	b,err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(resp.StatusCode, err)
-	}
-	return string(b)
-}
